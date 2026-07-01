@@ -1423,6 +1423,8 @@ async def schedule_task(task_id: str, scene_ids: list[int], interval: float) -> 
 
 
 def local_ffmpeg_candidates() -> tuple[str, str]:
+    if os.name != "nt":
+        return "", ""
     for ffmpeg in TOOLS_DIR.glob("ffmpeg/**/bin/ffmpeg.exe"):
         ffprobe = ffmpeg.with_name("ffprobe.exe")
         if ffprobe.exists():
@@ -1434,19 +1436,22 @@ def local_ffmpeg_candidates() -> tuple[str, str]:
 
 
 def detect_ffmpeg() -> dict[str, str]:
-    ffmpeg, ffprobe = local_ffmpeg_candidates()
-    if ffmpeg:
-        return {"status": "ready", "ffmpeg": ffmpeg, "ffprobe": ffprobe, "message": "使用项目目录内 ffmpeg。"}
     ffmpeg = shutil.which("ffmpeg") or ""
     ffprobe = shutil.which("ffprobe") or ""
     if ffmpeg and ffprobe:
         return {"status": "ready", "ffmpeg": ffmpeg, "ffprobe": ffprobe, "message": "使用系统 PATH 中的 ffmpeg。"}
+    ffmpeg, ffprobe = local_ffmpeg_candidates()
+    if ffmpeg:
+        return {"status": "ready", "ffmpeg": ffmpeg, "ffprobe": ffprobe, "message": "使用项目目录内 ffmpeg。"}
     return {"status": "missing", "ffmpeg": "", "ffprobe": "", "message": "未检测到 ffmpeg。"}
 
 
 def download_ffmpeg() -> None:
     global ffmpeg_download_in_progress
     if ffmpeg_download_in_progress:
+        return
+    if os.name != "nt":
+        ffmpeg_state.update({"status": "failed", "message": "自动下载仅支持 Windows。本机/服务器请通过系统包管理器安装 ffmpeg，Docker 镜像会自动安装。"})
         return
     ffmpeg_download_in_progress = True
     ffmpeg_state.update({"status": "downloading", "message": "正在下载 ffmpeg..."})
