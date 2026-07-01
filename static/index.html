@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Grok Video Workbench</title>
+    <link rel="stylesheet" href="/static/style.css?v=20260701_auth_gate" />
+  </head>
+  <body class="auth-locked">
+    <div class="shell">
+      <aside class="rail">
+        <header class="brand">
+          <div class="mark">GV</div>
+          <div>
+            <h1>Grok Video</h1>
+            <p>CPA 分镜工作台</p>
+          </div>
+        </header>
+        <section class="panel compact">
+          <div class="panel-head">
+            <h2>任务</h2>
+            <button id="newTaskBtn" class="icon-btn" title="新建任务">＋</button>
+          </div>
+          <input id="newTaskName" class="input" placeholder="任务名，可留空" />
+          <div id="taskList" class="task-list"></div>
+        </section>
+        <section class="panel compact">
+          <div class="panel-head">
+            <h2>CPA xAI 账号</h2>
+            <div class="mini-actions">
+              <button id="uploadXaiAuthBtn" class="icon-btn" title="上传 xAI 账号">⇧</button>
+              <button id="refreshCpaBtn" class="icon-btn" title="刷新 xAI 账号">↻</button>
+              <input id="uploadXaiAuthInput" type="file" accept=".json,application/json" hidden />
+            </div>
+          </div>
+          <div id="cpaAccounts" class="account-list"></div>
+        </section>
+      </aside>
+
+      <main class="stage">
+        <div class="stage-toolbar">
+          <div>
+            <h2 id="activeTaskTitle">请选择或创建任务</h2>
+            <p id="activeTaskMeta">分镜按 ID 从上到下执行</p>
+          </div>
+          <div class="toolbar-actions">
+            <button id="addSceneBtn" class="btn secondary">＋ 分镜</button>
+            <button id="submitTaskBtn" class="btn primary">提交任务</button>
+          </div>
+        </div>
+        <div id="sceneList" class="scene-list empty">暂无分镜</div>
+      </main>
+
+      <aside class="inspector">
+        <section class="panel">
+          <div class="panel-head">
+            <h2>全局参数</h2>
+            <button id="applyGlobalBtn" class="btn ghost">应用到全部</button>
+          </div>
+          <label>模型</label>
+          <select id="globalModel" class="input"></select>
+          <div class="grid-2">
+            <div>
+              <label>时长</label>
+              <select id="globalDuration" class="input"></select>
+            </div>
+            <div>
+              <label>分辨率</label>
+              <select id="globalResolution" class="input"></select>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div>
+              <label>画幅</label>
+              <select id="globalAspect" class="input"></select>
+            </div>
+            <div>
+              <label>提交间隔</label>
+              <select id="submitInterval" class="input">
+                <option value="1">1 秒</option>
+                <option value="3">3 秒</option>
+                <option value="5" selected>5 秒</option>
+                <option value="10">10 秒</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>结果管理</h2>
+            <button id="downloadSelectedBtn" class="btn ghost">下载勾选到本地</button>
+          </div>
+          <p class="hint merge-guide">勾选分镜后先下载到本地，或手动下载后上传；可合并后点击合并，最终视频会出现在分镜列表最下面。</p>
+          <div id="resultSummary" class="summary"></div>
+          <div class="grid-2">
+            <select id="mergeResolution" class="input">
+              <option value="1080p">1080p</option>
+              <option value="720p">720p</option>
+              <option value="480p">480p</option>
+            </select>
+            <select id="mergeAspect" class="input">
+              <option value="16:9">16:9</option>
+              <option value="9:16">9:16</option>
+              <option value="1:1">1:1</option>
+            </select>
+          </div>
+          <label class="checkline"><input id="normalizeMerge" type="checkbox" /> 统一格式后合并</label>
+          <button id="mergeBtn" class="btn primary wide">合并勾选分镜并生成最终视频</button>
+          <div id="mergeResults" class="history"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>CPA 设置</h2>
+            <button id="saveSettingsBtn" class="btn ghost">保存</button>
+          </div>
+          <label>CPA 地址</label>
+          <input id="cpaBaseUrl" class="input" />
+          <label>API Key</label>
+          <input id="cpaApiKey" class="input" type="password" />
+          <label>Management Key</label>
+          <input id="cpaManagementKey" class="input" type="password" />
+          <label>基础图床 HTTPS</label>
+          <input id="imageHostBaseUrl" class="input" placeholder="https://img.remit.ee" />
+          <label>当前图床</label>
+          <select id="imageHostSelect" class="input"></select>
+          <label>默认下载线程数</label>
+          <input id="downloadThreadCount" class="input" type="number" min="1" step="1" />
+          <div id="downloadThreadStatus" class="hint"></div>
+          <div class="grid-2">
+            <button id="testBaseImageHostBtn" class="btn ghost">校验基础图床</button>
+            <button id="testSelectedImageHostBtn" class="btn ghost">校验当前图床</button>
+          </div>
+          <div id="imageHostStatus" class="hint"></div>
+          <div id="ffmpegStatus" class="hint"></div>
+          <button id="downloadFfmpegBtn" class="btn secondary wide">检测/下载 ffmpeg</button>
+        </section>
+      </aside>
+    </div>
+
+    <div id="authOverlay" class="auth-overlay" role="dialog" aria-modal="true">
+      <form id="authForm" class="auth-panel" autocomplete="off">
+        <div class="modal-kicker">授权校验</div>
+        <h2 id="authTitle">授权密钥</h2>
+        <p id="authMessage">请输入授权密钥后继续。</p>
+        <label for="authKey">密钥</label>
+        <input id="authKey" class="input" type="password" autocomplete="current-password" spellcheck="false" />
+        <div id="authConfirmGroup">
+          <label for="authConfirmKey">重复密钥</label>
+          <input id="authConfirmKey" class="input" type="password" autocomplete="new-password" spellcheck="false" />
+        </div>
+        <button id="authSubmit" class="btn primary wide" type="submit">确定</button>
+        <div id="authError" class="auth-error" role="alert"></div>
+      </form>
+    </div>
+
+    <div id="toast" class="toast"></div>
+    <script src="/static/app.js?v=20260701_auth_gate"></script>
+  </body>
+</html>

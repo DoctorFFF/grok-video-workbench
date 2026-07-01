@@ -1,0 +1,16 @@
+.codegraph/
+.git/
+.gitignore
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+data/
+videos/
+tools/ffmpeg/
+
+*.zip
+hf_accsess_token.txt
+hf_access_token.txt
+.env
+DEVELOPMENT_MEMORY.md
